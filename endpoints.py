@@ -36,9 +36,12 @@ def get_bill_details(congress, bill_type, bill_number):
 
 
 def get_bill_text(congress, bill_type, bill_number):
+    _bill_type = bill_type.lower()
+    #print(_bill_type)
     print("Getting bill text")
-    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}/text?api_key={api}"
-    response = requests.get(url)
+    link = f"https://www.congress.gov/{congress}/bills/{_bill_type}{bill_number}/BILLS-{congress}{_bill_type}{bill_number}eh.xml"
+    #print("LINK IS *****" + link)
+    return link
     #print(json.dumps(response.json(), indent=4))
 
 
@@ -102,8 +105,6 @@ INDUSTRY_KEYWORDS = {
     "Energy": ["Renewable", "Oil", "Gas", "Solar", "Wind"],
     "Finance": ["Tax", "Regulation", "Crypto", "Banking"]
 }
-
-
 def map_to_industry(subjects, title=""):
     """
     Maps bill subjects to related industries.
@@ -160,6 +161,10 @@ def main():
         print(f" Likelihood of Passage: {likelihood}")
         print(f" Affected Industries: {industries if industries else 'Unknown'}")
         print("-" * 50)
+
+        #get text
+        link = get_bill_text(congress, bill_type, bill_number)
+        print(f"The link to the .htm text is {link}")
 
 
 if __name__ == "__main__":
