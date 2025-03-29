@@ -4,6 +4,7 @@ import json
 
 api = os.getenv("CONGRESS_API_KEY")
 
+
 def get_latest_bills(num_bills):
     print("Getting latest bills")
     url = f"https://api.congress.gov/v3/bill?api_key={api}"
@@ -13,14 +14,13 @@ def get_latest_bills(num_bills):
     return response.json()
 
 
-def get_bill_details(congress, bill_type,bill_number):
+def get_bill_details(congress, bill_type, bill_number):
     print("Getting bill details")
     url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}?api_key={api}"
     response = requests.get(url)
-    #print(json.dumps(response.json(), indent=4))
     data = response.json()
     return {
-        "title": data.get("title"),
+        "title": data.get("title", "Unknown"),
         "bill_type": bill_type,
         "bill_number": bill_number,
         "congress": congress,
@@ -31,20 +31,11 @@ def get_bill_details(congress, bill_type,bill_number):
     }
 
 
-def get_bill_subject(congress, bill_type,bill_number):
-    print("Getting bill subject")
-    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}/subjects?api_key={api}"
+def get_bill_text(congress, bill_type, bill_number):
+    print("Getting bill text")
+    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}/text?api_key={api}"
     response = requests.get(url)
-    #print(json.dumps(response.json(), indent=4))
-    return response.json()
-
-
-def get_bill_summary(congress, bill_type,bill_number):
-    print("Getting bill summary")
-    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}/summaries?api_key={api}"
-    response = requests.get(url)
-    #print(json.dumps(response.json(), indent=4))
-    return response.json()
+    print(json.dumps(response.json(), indent=4))
 
 
 def predict_likelihood(bill_data):
@@ -53,34 +44,43 @@ def predict_likelihood(bill_data):
     """
     score = 0
 
-    # 1️⃣ Check Sponsorship
+    # Check Sponsorship
     sponsors = bill_data.get("sponsors", [])
-    if len(sponsors) >= 5:  # More sponsors = more support
+    if len(sponsors) >= 5:
         score += 2
-    if any("R" in s or "D" in s for s in sponsors):  # Bipartisan support
+        print("+2")
+    if any("R" in s or "D" in s for s in sponsors):
         score += 3
+        print("+3")
 
-    # 2️⃣ Check Bill Progress
+    # Check Bill Progress
     latest_action = bill_data.get("latest_action", "").lower()
     if "passed house" in latest_action:
         score += 4
+        print("+4")
     if "passed senate" in latest_action:
         score += 5
+        print("+5")
     if "vetoed" in latest_action or "failed" in latest_action:
         score -= 5
+        print("-5")
 
-    # 3️⃣ Committee Assignment (Bills in powerful committees are more likely to pass)
+    # Committee Assignment
     important_committees = ["Finance", "Appropriations", "Ways and Means"]
     if any(comm in bill_data.get("committees", "") for comm in important_committees):
         score += 2
+        print("+2")
 
-    # 4️⃣ Bill Type Influence
+    # Bill Type Influence
     bill_type = bill_data.get("bill_type", "").upper()
-    if bill_type in ["HR", "S"]:  # House and Senate bills (more impactful)
+    if bill_type in ["HR", "S"]:
         score += 2
-    elif bill_type in ["HRES", "SRES"]:  # Resolutions (often symbolic)
+        print("+2")
+    elif bill_type in ["HRES", "SRES"]:
         score -= 2
+        print("-2")
 
+    print(f"score is {score}")
     # Assign Likelihood Based on Score
     if score >= 7:
         return "High"
@@ -96,71 +96,65 @@ INDUSTRY_KEYWORDS = {
     "Energy": ["Renewable", "Oil", "Gas", "Solar", "Wind"],
     "Finance": ["Tax", "Regulation", "Crypto", "Banking"]
 }
-def map_to_industry(subjects):
+
+
+def map_to_industry(subjects, title=""):
     """
     Maps bill subjects to related industries.
+    Falls back to title keywords if subjects are unavailable.
     """
     matched_industries = set()
+
+    # Check subjects first
     for subject in subjects:
         for industry, keywords in INDUSTRY_KEYWORDS.items():
             if any(keyword.lower() in subject.lower() for keyword in keywords):
                 matched_industries.add(industry)
+
+    # Fallback: Check title if no subjects match
+    if not matched_industries:
+        for industry, keywords in INDUSTRY_KEYWORDS.items():
+            if any(keyword.lower() in title.lower() for keyword in keywords):
+                matched_industries.add(industry)
+
     return list(matched_industries)
+
 
 def main():
     print()
-    #testing endpoints individually
-    '''
-    get_latest_bills(2)
-    get_bill_details(117,'hr',3076)
-    get_bill_subject(117, 'hr', 3076)
-    get_bill_summary(117,'hr',3076)
-    '''
 
-    # testing concurrent calls / data propagation
-    '''
-    bill_details = []
+    # Fetch latest bills and analyze them
     bills = get_latest_bills(1)
+
     for bill in bills['bills']:
-        congress = bill['congress']
-        bill_type = bill['type']
-        bill_number = bill['number']
-        bill_details.append((congress, bill_type, bill_number))
-
-    print(bill_details)
-
-    for tup in bill_details:
-        c,typ,num = tup
-        get_bill_details(c,typ,num)
-    '''
-
-    #testing score system
-    bills = get_latest_bills(1)
-    for bill in bills['bills']:
+        #print(bill)
+        title = bill["title"]
         congress = bill['congress']
         bill_type = bill['type']
         bill_number = bill['number']
 
+        # Get detailed data about the bill
         bill_data = get_bill_details(congress, bill_type, bill_number)
+        print(bill_data)
         if not bill_data:
+            print(f"Skipping Bill {bill_number} due to missing details.")
             continue
 
+        # Predict likelihood of passage
         likelihood = predict_likelihood(bill_data)
-        industries = map_to_industry(bill_data.get("subjects", []))
+
+        # Map to industries (fallback to title if no subjects)
+        industries = map_to_industry(bill_data.get("subjects", []), title=bill_data["title"])
 
         # Print results
-        print("\n🔹 Bill Summary 🔹")
-        print(f"📜 Title: {bill_data['title']}")
-        print(f"📌 Bill ID: {bill_type} {bill_number}")
-        print(f"🏛️ Congress: {congress}")
-        print(f"🔍 Likelihood of Passage: {likelihood}")
-        print(f"🏭 Affected Industries: {industries if industries else 'Unknown'}")
+        print("\nBill Summary")
+        print(f" Title: {title}")
+        print(f" Bill ID: {bill_type} {bill_number}")
+        print(f" Congress: {congress}")
+        print(f" Likelihood of Passage: {likelihood}")
+        print(f" Affected Industries: {industries if industries else 'Unknown'}")
         print("-" * 50)
+
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
