@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import numpy as np
 import os
+import google.generativeai as genai
 
 # Load FinBERT once
 tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
@@ -11,6 +12,12 @@ model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert")
 
 # Congress API Key
 api = os.getenv("CONGRESS_API_KEY")
+
+# GEMINI: 1Configure API key
+api2 = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api2)
+# GEMINI: 2Load the model
+gen_model = genai.GenerativeModel("gemini-1.5-pro")
 
 
 # Function to extract bill text from an HTML page
@@ -139,7 +146,70 @@ def map_to_industry(subjects, title=""):
     return list(matched_industries)
 
 
+
+# GEMINI: 4Construct prompt with bill text
+def generate_bill_analysis(congress, bill_number, bill_text):
+    prompt = f"""
+For bill number {bill_number}, Congress {congress}, perform the following tasks:
+
+1. Rate the sentiment with respect to the stock market as positive, negative, or neutral (output just the result)
+2. For the rating, give the confidence level of the rating in percentage (output just the percentage)
+3. Summarize the bill in plain language in 100 words.
+4. Assess its potential financial implications and justify reasoning based on the content rating in 100 words.
+
+Here is the full text of the bill:
+\"\"\"
+{bill_text}
+\"\"\"
+"""
+    return gen_model.generate_content(prompt).text
+
+
+#____________________________MAIN__START_________________________
 # Main Execution
+# def main():
+#     bills = get_latest_bills(3)
+#     for bill in bills['bills']:
+#         title = bill["title"]
+#         congress = bill['congress']
+#         bill_type = bill['type']
+#         bill_number = bill['number']
+
+#         bill_data = get_bill_details(congress, bill_type, bill_number)
+#         likelihood = predict_likelihood(bill_data)
+#         industries = map_to_industry(bill_data.get("subjects", []), title=bill_data["title"])
+
+#         print(
+#             f"\nBill Summary\n Title: {title}\n Bill ID: {bill_type} {bill_number}\n Congress: {congress}\n Likelihood of Passage: {likelihood}\n Affected Industries: {industries if industries else 'Unknown'}")
+
+#         link = f"https://www.congress.gov/{congress}/bills/{bill_type.lower()}{bill_number}/BILLS-{congress}{bill_type.lower()}{bill_number}eh.xml"
+#         text = extract_text_from_html_url(link)
+#         if text:
+#             bill_text = text[:8000] 
+#             sentiment, scores = analyze_sentiment_chunks(bill_text)
+#             # print(f" finBERK Sentiment: {sentiment}")
+#             label_map = {"negative": 0, "neutral": 1, "positive": 2}
+#             index = label_map[sentiment]
+#             score = scores[index]
+#             print(f"\nfinBERK Sentiment: {sentiment}")
+#             print(f"Score: {score:.4f}")
+
+#             # Store both sentiment and score
+#             finBERK_sentiment_result = (sentiment, score)
+
+
+#             analysis = generate_bill_analysis(congress=congress, bill_number=bill_number, bill_text=bill_text)
+#             print(analysis)
+#         else:
+#             print(f"Bill text unavailable for {bill_type} {bill_number}, skipping sentiment analysis.")
+
+#         # if bill_text:
+#         #     sentiment2, scores = analyze_sentiment_chunks(bill_text)
+#         #     print(f" finBERK Sentiment: {sentiment2}")
+#         #     analysis = generate_bill_analysis(congress=119, bill_number=1069, bill_text=bill_text)
+#____________________________MAIN__END_________________________
+
+
 def main():
     bills = get_latest_bills(3)
     for bill in bills['bills']:
@@ -158,9 +228,66 @@ def main():
         link = f"https://www.congress.gov/{congress}/bills/{bill_type.lower()}{bill_number}/BILLS-{congress}{bill_type.lower()}{bill_number}eh.xml"
         text = extract_text_from_html_url(link)
         if text:
-            sentiment, scores = analyze_sentiment_chunks(text)
-            print(f" Sentiment: {sentiment}")
+            bill_text = text[:8000]
 
+            # --- FinBERT Sentiment ---
+            sentiment, scores = analyze_sentiment_chunks(bill_text)
+            label_map = {"negative": 0, "neutral": 1, "positive": 2}
+            reverse_label_map = {v: k for k, v in label_map.items()}
+            index = label_map[sentiment]
+            score = scores[index]
+            print(f"\nfinBERK Sentiment: {sentiment}")
+            print(f"Score: {score:.4f}")
+            finBERK_sentiment_result = (sentiment, score)
+
+            # --- Gemini Sentiment ---
+            analysis = generate_bill_analysis(congress=congress, bill_number=bill_number, bill_text=bill_text)
+            print(analysis)
+
+            lines = analysis.strip().split("\n")
+            gemini_sentiment = None
+            gemini_score = None
+
+            for line in lines:
+                if line.lower().startswith("1."):
+                    gemini_sentiment = line.split(".")[1].strip().lower()
+                elif line.lower().startswith("2."):
+                    percent_text = line.split(".")[1].strip().replace("%", "")
+                    try:
+                        gemini_score = float(percent_text) / 100
+                    except ValueError:
+                        gemini_score = None
+                elif line.lower().startswith("3."):
+                    summary = line.split("3.", 1)[1].strip()
+                elif line.lower().startswith("4."):
+                    insight = line.split("4.", 1)[1].strip()
+
+            if gemini_sentiment is not None and gemini_score is not None:
+                print(f"\nGemini Sentiment: {gemini_sentiment}")
+                print(f"Gemini Confidence: {gemini_score:.4f}")
+
+                # Convert sentiments to index
+                fin_sent = finBERK_sentiment_result[0].lower()
+                fin_score = finBERK_sentiment_result[1]
+                fin_label_idx = label_map.get(fin_sent, 1)
+                gemini_label_idx = label_map.get(gemini_sentiment, 1)
+
+                # --- Weighted hybrid sentiment index ---
+                hybrid_position = 0.3 * fin_label_idx + 0.7 * gemini_label_idx
+                hybrid_index = int(round(hybrid_position))
+                hybrid_sentiment = reverse_label_map[hybrid_index]
+
+                # --- Weighted hybrid confidence ---
+                hybrid_confidence = round(0.3 * fin_score + 0.7 * gemini_score, 4)
+
+                print(f"\n✅ Hybrid Sentiment: {hybrid_sentiment.capitalize()}")
+                print(f"📊 Hybrid Confidence: {hybrid_confidence:.4f}")
+                print(f"\n📝 Text Summary:\n{summary}")
+                print(f"\n💡 Financial Insight:\n{insight}")
+            else:
+                print("⚠️ Could not extract Gemini sentiment or score.")
+        else:
+            print(f"Bill text unavailable for {bill_type} {bill_number}, skipping sentiment analysis.")
 
 if __name__ == "__main__":
     main()
