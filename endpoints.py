@@ -17,7 +17,7 @@ def get_latest_bills(num_bills):
 
 def get_bill_details(congress, bill_type, bill_number):
     print("Getting bill details")
-    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}?api_key={api}"
+    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}/text?api_key={api}"
     response = requests.get(url)
     data = response.json()
 
