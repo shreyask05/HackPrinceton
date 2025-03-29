@@ -1,35 +1,3 @@
-# import requests
-# import json
-
-# # Example: Fetch recent bills related to finance
-# BASE_URL = "https://www.govtrack.us/api/v2/bill"
-
-# # You can filter by subject, sponsor, status, etc.
-# params = {
-#     "sort": "-introduced_date",        # Most recent first
-#     "limit": 20,                      # Number of results
-#     "q": "health"
-# }
-
-# response = requests.get(BASE_URL, params=params)
-
-# if response.status_code == 200:
-#     data = response.json()
-#     filtered_bills = [
-#         bill for bill in data["objects"]
-#         if bill["current_status_label"] != "Introduced"
-#     ]
-
-#     for bill in filtered_bills:
-#         #print(bill)
-#         print("Title:", bill["title"])
-#         print("Introduced:", bill["introduced_date"])
-#         print("Current Status Label:", bill["current_status_label"])
-#         print("Full Text Link:", bill["link"])
-#         print("-----\n")
-# else:
-#     print("Error:", response.status_code)
-
 import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
@@ -59,9 +27,10 @@ def extract_text_from_html_url(url):
 def generate_bill_analysis(congress, bill_number, bill_text):
     prompt = f"""
 For bill number {bill_number}, Congress {congress}, perform the following tasks:
-1. Summarize the bill in plain language.
-2. Assess its potential economic impact and financial implications.
-3. Rate the sentiment with respect to the stock market as positive, negative, or neutral and confidence score in numbers— and justify your reasoning based on the content.
+1. Summarize the bill in plain language in 100 words.
+2. Rate the sentiment with respect to the stock market as positive, negative, or neutral (output just the result)
+3. For the rating, give the confidence level of the rating in percentage (output just the percentage)
+3. Assess its potential financial implications and justify reasoning based on the content rating in 100 words.
 
 Here is the full text of the bill:
 \"\"\"
