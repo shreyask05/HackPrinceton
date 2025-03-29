@@ -1,17 +1,16 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './Navbar.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import "../styles/Navbar.css";
 
 function Navbar() {
   return (
-    <nav className="navbar">
-      <h2>Bill Market Impact Tracker</h2>
-      <div className="nav-links">
+    <header className="header">
+      <h1>Bill Market Tracker</h1>
+      <nav className="nav-links">
         <Link to="/">Home</Link>
-        <Link to="/sectors">Sectors</Link>
         <Link to="/about">About</Link>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }
 
