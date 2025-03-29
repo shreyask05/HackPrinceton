@@ -1,13 +1,40 @@
 import json
 import os
-import requests as req
+import requests
+
+api = os.getenv("CONGRESS_API_KEY")
 
 
-congress_api_key = os.getenv('CONGRESS_API_KEY')
-#print("api key is: " + congress_api_key)
+def get_bill_details(congress, bill_type, bill_number):
+    print("Getting bill details")
+    url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}?api_key={api}"
+    response = requests.get(url)
+    data = response.json()
 
-url = f"https://api.congress.gov/v3/bill/117/hr/3076/subjects?api_key={congress_api_key}"
-response = req.get(url)
-with open("response.json", "w") as f:
-    json.dump(response.json(), file=f, indent=4)
-print(response.json())
+    bill_data = data.get("bill", {})  # Ensure we access the nested 'bill' object
+
+    return {
+        "title": bill_data.get("title", "Unknown"),
+        "bill_type": bill_type,
+        "bill_number": bill_number,
+        "congress": congress,
+        "sponsors": [s.get("fullName", "Unknown") for s in bill_data.get("sponsors", [])],
+        "latest_action": bill_data.get("latestAction", {}).get("text", "N/A"),
+        "committees": bill_data.get("committees", {}).get("url", "N/A"),
+        "subjects": bill_data.get("subjects", {}).get("url", "N/A"),
+    }
+
+
+
+res = get_bill_details(118, 'hr', 9758)
+print(res)
+print('committee info')
+
+url = res['committees'] + '&api_key=' + str(api)
+response = requests.get(url)
+print(json.dumps(response.json(), indent=2))
+
+print('subject info')
+url = res['subjects'] + '&api_key=' + str(api)
+response = requests.get(url)
+print(json.dumps(response.json(), indent=2))

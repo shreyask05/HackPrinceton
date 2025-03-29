@@ -7,8 +7,9 @@ api = os.getenv("CONGRESS_API_KEY")
 
 def get_latest_bills(num_bills):
     print("Getting latest bills")
-    url = f"https://api.congress.gov/v3/bill?api_key={api}"
-    params = {'limit': num_bills}
+    url = f"https://api.congress.gov/v3/bill/119?sort=updateDate+desc&api_key={api}"
+    #params = {'limit': num_bills}
+    params = {'limit': num_bills, 'fromDateTime': '2025-03-10T00:00:00Z', 'toDateTime': '2025-05-15T00:00:00Z'}
     response = requests.get(url, params=params)
     #print(json.dumps(response.json(), indent=4))
     return response.json()
@@ -19,15 +20,18 @@ def get_bill_details(congress, bill_type, bill_number):
     url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}?api_key={api}"
     response = requests.get(url)
     data = response.json()
+
+    bill_data = data.get("bill", {})  # Ensure we access the nested 'bill' object
+
     return {
-        "title": data.get("title", "Unknown"),
+        "title": bill_data.get("title", "Unknown"),
         "bill_type": bill_type,
         "bill_number": bill_number,
         "congress": congress,
-        "sponsors": [s.get("name", "") for s in data.get("sponsors", [])],
-        "latest_action": data.get("latestAction", {}).get("text", "N/A"),
-        "committees": [c.get("name", "") for c in data.get("committees", [])],
-        "subjects": [s.get("name", "") for s in data.get("subjects", [])],
+        "sponsors": [s.get("fullName", "Unknown") for s in bill_data.get("sponsors", [])],
+        "latest_action": bill_data.get("latestAction", {}).get("text", "N/A"),
+        "committees": bill_data.get("committees", {}).get("url", "N/A"),
+        "subjects": bill_data.get("subjects", {}).get("url", "N/A"),
     }
 
 
@@ -35,7 +39,7 @@ def get_bill_text(congress, bill_type, bill_number):
     print("Getting bill text")
     url = f"https://api.congress.gov/v3/bill/{congress}/{bill_type}/{bill_number}/text?api_key={api}"
     response = requests.get(url)
-    print(json.dumps(response.json(), indent=4))
+    #print(json.dumps(response.json(), indent=4))
 
 
 def predict_likelihood(bill_data):
@@ -48,46 +52,48 @@ def predict_likelihood(bill_data):
     sponsors = bill_data.get("sponsors", [])
     if len(sponsors) >= 5:
         score += 2
-        print("+2")
+        #print("+2")
     if any("R" in s or "D" in s for s in sponsors):
         score += 3
-        print("+3")
+        #print("+3")
 
     # Check Bill Progress
     latest_action = bill_data.get("latest_action", "").lower()
     if "passed house" in latest_action:
         score += 4
-        print("+4")
+        #print("+4")
     if "passed senate" in latest_action:
         score += 5
-        print("+5")
+        #print("+5")
     if "vetoed" in latest_action or "failed" in latest_action:
         score -= 5
-        print("-5")
+        #print("-5")
 
     # Committee Assignment
     important_committees = ["Finance", "Appropriations", "Ways and Means"]
     if any(comm in bill_data.get("committees", "") for comm in important_committees):
         score += 2
-        print("+2")
+        #print("+2")
 
     # Bill Type Influence
     bill_type = bill_data.get("bill_type", "").upper()
     if bill_type in ["HR", "S"]:
         score += 2
-        print("+2")
+        #print("+2")
     elif bill_type in ["HRES", "SRES"]:
         score -= 2
-        print("-2")
+        #print("-2")
 
-    print(f"score is {score}")
+    #print(f"score is {score}")
     # Assign Likelihood Based on Score
     if score >= 7:
         return "High"
-    elif score >= 3:
+    elif score >= 5:
         return "Moderate"
-    else:
+    elif score >= 2:
         return "Low"
+    else:
+        return "Very Low"
 
 
 INDUSTRY_KEYWORDS = {
@@ -124,7 +130,7 @@ def main():
     print()
 
     # Fetch latest bills and analyze them
-    bills = get_latest_bills(1)
+    bills = get_latest_bills(3)
 
     for bill in bills['bills']:
         #print(bill)
