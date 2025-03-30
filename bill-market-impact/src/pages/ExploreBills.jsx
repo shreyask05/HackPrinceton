@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import BillCard from "../components/BillCard";
 import SectorFilter from "../components/SectorFilter";
 import StageFilter from "../components/StageFilter";
 import "../styles/ExploreBills.css";
-import { dummyBills } from "../data/dummyBills";
 
 function ExploreBills() {
   const [bills, setBills] = useState([]);
@@ -11,13 +11,21 @@ function ExploreBills() {
   const [selectedStage, setSelectedStage] = useState("all");
 
   useEffect(() => {
-    setBills(dummyBills);
+    const fetchBills = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/all_bills");
+        setBills(response.data);
+      } catch (error) {
+        console.error("Error fetching bills:", error.message);
+      }
+    };
+    fetchBills();
   }, []);
 
-  const sectors = [...new Set(bills.map((bill) => bill.sector))];
+  const sectors = [...new Set(bills.flatMap((bill) => bill.sectors))];
 
   const filteredBills = bills.filter((bill) => {
-    const sectorMatch = selectedSector ? bill.sector === selectedSector : true;
+    const sectorMatch = selectedSector ? bill.sectors.includes(selectedSector) : true;
     const stageMatch =
       selectedStage === "all"
         ? true
