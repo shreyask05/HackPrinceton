@@ -17,7 +17,7 @@ api = os.getenv("CONGRESS_API_KEY")
 api2 = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api2)
 # GEMINI: 2Load the model
-gen_model = genai.GenerativeModel("gemini-1.5-pro")
+gen_model = genai.GenerativeModel('gemini-2.0-flash')
 
 
 # Function to extract bill text from an HTML page
@@ -65,7 +65,7 @@ def analyze_sentiment_chunks(text, chunk_size=1024):
 # Function to fetch latest bills
 def get_latest_bills(num_bills):
     url = f"https://api.congress.gov/v3/bill/119?sort=updateDate+desc&api_key={api}"
-    params = {'limit': num_bills, 'fromDateTime': '2025-03-10T00:00:00Z', 'toDateTime': '2025-05-15T00:00:00Z'}
+    params = {'limit': num_bills, 'fromDateTime': '2020-01-01T00:00:00Z', 'toDateTime': '2025-02-27T00:00:00Z'}
     response = requests.get(url, params=params)
     return response.json()
 
@@ -274,11 +274,19 @@ def main():
 
                 # --- Weighted hybrid sentiment index ---
                 hybrid_position = 0.3 * fin_label_idx + 0.7 * gemini_label_idx
-                hybrid_index = int(round(hybrid_position))
+
+                # Use narrower thresholds for neutral classification
+                if hybrid_position < 0.85:  # Was effectively 0.5
+                    hybrid_index = 0  # Negative
+                elif hybrid_position > 1.15:  # Was effectively 1.5
+                    hybrid_index = 2  # Positive
+                else:
+                    hybrid_index = 1  # Neutral
+
                 hybrid_sentiment = reverse_label_map[hybrid_index]
 
                 # --- Weighted hybrid confidence ---
-                hybrid_confidence = round(0.3 * fin_score + 0.7 * gemini_score, 4)
+                hybrid_confidence = round(0.2 * fin_score + 0.8 * gemini_score, 4)
 
                 print(f"\n✅ Hybrid Sentiment: {hybrid_sentiment.capitalize()}")
                 print(f"📊 Hybrid Confidence: {hybrid_confidence:.4f}")
