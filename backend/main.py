@@ -1,15 +1,14 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Annotated
-from backend import models, db
+from backend import models
+from backend.db import SessionLocal, engine
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import ARRAY
+from httpx import AsyncClient
 
 app = FastAPI()
-
-models.Bill.metadata.create_all(bind = db.engine)
+models.Bill.metadata.create_all(bind = engine)
     
-
 class Bill(BaseModel): 
     id: int
     title: str
@@ -26,15 +25,29 @@ class Bill(BaseModel):
 
 
 def get_db():
-    db = db.SessionLocal()
+    db = SessionLocal()
     try: 
         yield db
     finally: 
         db.close()
 db_dependency = Annotated[Session, Depends(get_db)]
 
+async def upload_bills(data: Bill):
+    async with AsyncClient() as client:
+           try:
+            res = await client.post('http://localhost:5432/create_bill', data = data)
+            return res
+           except ValueError as e:
+                print(e)
+                raise HTTPException(status_code=401, detail="error")
+               
+               
+     
+
+
 @app.post("/create_bill")
 async def create_bill(bill: Bill, db: db_dependency):
+  
     db_bill = models.Bill(
         id=bill.id,
         title=bill.title,
@@ -48,21 +61,35 @@ async def create_bill(bill: Bill, db: db_dependency):
         effect=bill.effect,
         sectors=bill.sectors
     )
+    
     try:
         db.add(db_bill)
         db.commit()
         db.refresh(db_bill)
         return db_bill
-    except:
-        raise HTTPException(status_code=400, detail=f"Failed to create bill")
+    except ValueError as e:
+        print(e)
+        raise HTTPException(status_code=404, detail="Failed to create bill")
+    
+    
 
-# get all bills
-# get certain bill
-# upload bill
-# delete bill
-# 
 @app.get('/all_bills')
 async def get_bills(bills: Bill, db: db_dependency):
     res = db.query(models.Bill).all()
     if not res:
-        raise HTTPException(status)
+        raise HTTPException(status=404, detail = 'Error lmao')
+    return res
+
+@app.get('/bill/{bill_id}')
+async def get_bill(bill_id: int, db: db_dependency):
+    res = db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+    if not res:
+        raise HTTPException(status=404, detail = 'Error lmao')
+    return res
+
+app.delete('/delete_bill')
+async def delete_bill(bill_id: int, db: db_dependency):
+    res = db.query(models.Bill).filter(models.Bill.id == bill_id).delete()
+    if not res:
+        raise HTTPException(status=404, detail='Error lmao')
+    return res
