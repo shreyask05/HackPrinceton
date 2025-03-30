@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Annotated
-from backend import models, db
+from . import models, db
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import ARRAY
 

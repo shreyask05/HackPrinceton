@@ -3,7 +3,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 
-from backend import db
+from . import db
 
 class Bill(db.Base):
 
