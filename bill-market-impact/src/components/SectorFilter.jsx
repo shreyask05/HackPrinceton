@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/SectorFilter.css"; // CSS Import
 import axios from "axios";
+import BillCard from "./BillCard";
 
 function SectorFilter({ sectors, selectedSector, onSelectSector }) {
   const [data, setData] = useState([]);
@@ -8,7 +9,7 @@ function SectorFilter({ sectors, selectedSector, onSelectSector }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.post('http://localhost:5432/all_bills');
+        const res = await axios.get('http://localhost:8000/all_bills');
         setData(res.data)
 
       } catch (err) {
@@ -16,7 +17,6 @@ function SectorFilter({ sectors, selectedSector, onSelectSector }) {
       }
     }
     fetchData();
-    console.log(data);
   }, []);
 
   return (
@@ -36,7 +36,12 @@ function SectorFilter({ sectors, selectedSector, onSelectSector }) {
       <div>
         {data.map((item, index) => (
           <div key={index} className="data-item">
-            <p>{item.title}</p>
+            <BillCard 
+            sector={item.sector}  // Passing the sector
+            // title={item.title}    // Passing the title
+            billType={item.bill_type} // Passing the bill type
+            confidenceScore={item.confidence_score} // Passing the confidence score
+            />
           </div>
         ))}
       </div>
