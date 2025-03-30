@@ -1,12 +1,12 @@
 import React from "react";
-import "../styles/index.css";
+import "../styles/Footer.css";
 
-function Footer() {
+const Footer = () => {
   return (
     <footer className="footer">
-      <p>© 2025 Bill Market Tracker</p>
+      <p>© 2025 BillPulse AI. All rights reserved.</p>
     </footer>
   );
-}
+};
 
 export default Footer;

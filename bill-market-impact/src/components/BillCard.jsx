@@ -1,18 +1,22 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import "../components/BillCard.css";
+import { useNavigate } from "react-router-dom";
+import "../styles/BillCard.css";
 
-function BillCard({ id, title, summary, sector, sentiment, impact }) {
+function BillCard({ bill }) {
+  const navigate = useNavigate();
+
+  const handleViewDetail = () => {
+    navigate(`/bill/${bill.id}`, { state: { bill } });
+  };
+
   return (
-    <div className="bill-card">
-      <h3>{title}</h3>
-      <p>{summary}</p>
-      <p><strong>Sector:</strong> {sector}</p>
-      <p><strong>Sentiment:</strong> {sentiment}</p>
-      <p><strong>Impact:</strong> {impact}</p>
-      <Link to={`/bill/${id}`} className="detail-button">
-        View Details
-      </Link>
+    <div className="bill-card fade-in">
+      <h3 className="bill-title">{bill.title}</h3>
+      <p className="bill-summary">{bill.summary}</p>
+      <p className="bill-sector">Sector: {bill.sector}</p>
+      <button className="view-detail-button" onClick={handleViewDetail}>
+        View Detail
+      </button>
     </div>
   );
 }

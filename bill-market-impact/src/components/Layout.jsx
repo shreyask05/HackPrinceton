@@ -2,14 +2,14 @@ import React from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
-function Layout({ children }) {
+const Layout = ({ children }) => {
   return (
     <>
       <Navbar />
-      <main>{children}</main>
+      {children}
       <Footer />
     </>
   );
-}
+};
 
 export default Layout;

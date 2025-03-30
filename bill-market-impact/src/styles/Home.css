@@ -1,35 +1,95 @@
-.home-main {
-  height: 65vh;
+.home-container {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  height: 65vh;
+  background-color: #f9fafa;
   padding: 2rem;
 }
 
-.hero h2 {
-  font-size: 2rem;
+.home-content {
+  text-align: center;
+  max-width: 700px;
+}
+
+.home-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 0.5rem;
+}
+
+.home-subtitle {
+  font-size: 1.2rem;
+  color: #555;
   margin-bottom: 1rem;
-  font-weight: bold;
 }
 
-.hero p {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-  color: #444;
+.home-description {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
 }
 
-.cta-button {
-  background-color: #3f51b5;
+.explore-button {
+  background-color: #0a2957;
   color: white;
   padding: 0.75rem 1.5rem;
-  font-size: 1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.cta-button:hover {
-  background-color: #303f9f;
+.explore-button:hover {
+  background-color: #0a2957;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .home-title {
+    font-size: 2rem;
+  }
+
+  .home-subtitle {
+    font-size: 1rem;
+  }
+
+  .home-description {
+    font-size: 0.95rem;
+  }
+}
+
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 85vh;
+  background-color: #f9fafa;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-container::before {
+  content: "";
+  background: url("/capitol1.png") no-repeat center;
+  background-size: cover;
+  opacity: 0.25;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  filter: blur(1px);
+}
+
+.home-content {
+  text-align: center;
+  max-width: 700px;
+  position: relative;
+  z-index: 1;
 }

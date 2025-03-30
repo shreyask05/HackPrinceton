@@ -2,16 +2,23 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/Navbar.css";
 
-function Navbar() {
+const Navbar = () => {
   return (
-    <header className="header">
-      <h1>Bill Market Tracker</h1>
-      <nav className="nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
-      </nav>
-    </header>
+    <nav className="navbar">
+      <div className="navbar-logo">BillPulse AI</div>
+      <ul className="navbar-links">
+        <li>
+          <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/explore">Explore Bills</Link>
+        </li>
+        <li>
+          <Link to="/about">About</Link>
+        </li>
+      </ul>
+    </nav>
   );
-}
+};
 
 export default Navbar;

@@ -1,28 +1,27 @@
-import React, { useState, useEffect } from "react";
-import "../styles/SectorFilter.css"; // CSS Import
+import React, {useState, useEffect} from "react";
+import "../styles/SectorFilter.css";
 import axios from "axios";
-import BillCard from "./BillCard";
 
-function SectorFilter({ sectors, selectedSector, onSelectSector }) {
-  const [data, setData] = useState([]);
+const SectorFilter = ({ sectors, selectedSector, onSelectSector }) => {
+    const [data, setData] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get('http://localhost:8000/all_bills');
-        setData(res.data)
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const res = await axios.get('http://localhost:8000/all_bills');
+            setData(res.data)
 
-      } catch (err) {
-        console.log(err.message)
-      }
-    }
-    fetchData();
-  }, []);
-
+          } catch (err) {
+            console.log(err.message)
+          }
+        }
+        fetchData();
+      }, []);
   return (
     <div className="sector-filter">
-      <label>Filter by Sector: </label>
+      <label htmlFor="sector-select">Filter by Sector:</label>
       <select
+        id="sector-select"
         value={selectedSector}
         onChange={(e) => onSelectSector(e.target.value)}
       >
@@ -33,21 +32,8 @@ function SectorFilter({ sectors, selectedSector, onSelectSector }) {
           </option>
         ))}
       </select>
-      <div>
-        {data.map((item, index) => (
-          <div key={index} className="data-item">
-            <BillCard 
-            sector={item.sector}  // Passing the sector
-            // title={item.title}    // Passing the title
-            billType={item.bill_type} // Passing the bill type
-            confidenceScore={item.confidence_score} // Passing the confidence score
-            />
-          </div>
-        ))}
-      </div>
     </div>
-
   );
-}
+};
 
 export default SectorFilter;

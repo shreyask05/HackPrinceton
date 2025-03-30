@@ -1,20 +1,65 @@
 .explore-main {
-  max-width: 1000px;
-  margin: 2rem auto;
   padding: 2rem;
-  font-family: "Times New Roman", serif;
+  background-color: #f9fafa;
+  min-height: 85vh;
 }
 
-.explore-title {
+.explore-header {
   text-align: center;
-  font-size: 28px;
-  margin-bottom: 1.5rem;
-  color: #333;
+  margin-bottom: 2rem;
+}
+
+.explore-header h2 {
+  font-size: 2.5rem;
+  color: #222;
+}
+
+.explore-header p {
+  color: #555;
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.explore-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
 }
 
 .bill-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  flex: 3;
+}
+
+.filter-sidebar {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.no-results {
+  text-align: center;
+  color: #777;
+  margin-top: 2rem;
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

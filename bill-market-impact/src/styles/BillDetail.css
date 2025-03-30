@@ -1,125 +1,249 @@
-.bill-detail {
-  max-width: 900px;
+.bill-detail-container {
+  max-width: 950px;
   margin: 0 auto;
   padding: 2rem;
-  font-family: "Times New Roman", Times, serif;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.back-button {
+  background-color: #6a727f;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.back-button:hover {
+  background-color: #0b5ed7;
 }
 
 .bill-title {
-  font-size: 2rem;
-  text-align: center;
-  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  color: #222;
 }
 
-.sentiment-box {
-  padding: 1rem;
-  border-radius: 8px;
+.bill-sector,
+.bill-effect,
+.bill-justification,
+.bill-confidence,
+.bill-stage,
+.bill-companies {
+  margin-bottom: 1.2rem;
+}
+
+.bill-sector strong,
+.bill-effect strong,
+.bill-justification strong,
+.bill-confidence strong,
+.bill-stage strong,
+.bill-companies strong {
+  color: #333;
+}
+
+.bill-effect {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.effect-block {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
   color: white;
-  text-align: center;
-  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
 }
 
-.sentiment-box.positive {
-  background-color: #4caf50;
+.effect-block.positive {
+  background-color: #2e7d32;
 }
 
-.sentiment-box.neutral {
-  background-color: #ffc107;
-  color: black;
+.effect-block.negative {
+  background-color: #c62828;
 }
 
-.sentiment-box.negative {
-  background-color: #f44336;
+.effect-block.neutral {
+  background-color: #616161;
 }
 
-.justification,
-.sector,
-.stage-progress {
-  margin-top: 1rem;
+.bill-justification p {
+  margin-top: 0.5rem;
+  line-height: 1.5;
+  color: #444;
+}
+
+.confidence-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.confidence-fill {
+  height: 100%;
+  background-color: #2e7d32;
+  transition: width 0.6s ease;
 }
 
 .confidence-score {
-  margin-top: 1rem;
+  margin-top: 0.4rem;
+  font-weight: 500;
+  color: #333;
 }
 
-.progress-bar {
-  background-color: #e0e0e0;
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  background-color: #3f51b5;
-  height: 100%;
-  width: 0;
-  transition: width 1s ease-in-out;
-}
-
-.progress-container {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1rem;
+/* Stage Progress */
+.stage-progress-container {
   position: relative;
-  padding: 1rem 0;
+  margin-top: 1rem;
+  padding: 2rem 0 1rem 0;
 }
 
-.progress-container::before {
-  content: "";
+.stage-line-full {
   position: absolute;
-  top: 50%;
-  left: 5%;
-  right: 5%;
+  top: 36px; /* lowered */
+  left: 12%;
+  right: 12%;
   height: 2px;
   background-color: #ccc;
   z-index: 1;
 }
 
-.progress-step {
-  text-align: center;
+.stage-progress {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  margin: 0 12%;
+}
+
+.stage-item-horizontal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.stage-circle-horizontal {
+  width: 14px;
+  height: 14px;
+  background-color: #aaa;
+  border-radius: 50%;
   position: relative;
   z-index: 2;
 }
 
-.progress-step .circle {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin: 0 auto;
-  line-height: 30px;
-  color: white;
-  background-color: gray;
-}
-
-.progress-step.completed-stage .circle {
-  background-color: green;
-}
-
-.progress-step.current-stage .circle {
-  background-color: #3f51b5;
+.stage-circle-horizontal.current {
+  background-color: #2e7d32;
   animation: pulse 1.5s infinite;
 }
 
-.progress-step.pending-stage .circle {
-  background-color: gray;
-}
-
-.progress-step p {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+.stage-item-horizontal p {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: #333;
 }
 
 @keyframes pulse {
   0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(63, 81, 181, 0.7);
+    box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7);
   }
   70% {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px 5px rgba(63, 81, 181, 0);
+    box-shadow: 0 0 0 8px rgba(46, 125, 50, 0);
   }
   100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(63, 81, 181, 0);
+    box-shadow: 0 0 0 0 rgba(46, 125, 50, 0);
   }
+}
+
+.bill-companies {
+  margin-top: 2rem;
+}
+
+.companies-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.company-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 0.8rem;
+  flex: 1 1 200px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+}
+
+.skeleton-loader {
+  width: 100%;
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .bill-detail-container {
+    padding: 1rem;
+  }
+
+  .stage-progress {
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .stage-item-horizontal {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .stage-line-full {
+    display: none;
+  }
+
+  .companies-list {
+    flex-direction: column;
+  }
+}
+
+/* ===== Page Animation ===== */
+
+.fade-slide-up {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeSlideUp 0.8s ease forwards;
+}
+
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.confidence-fill {
+  height: 100%;
+  background-color: #2e7d32;
+  width: 0%;
+  transition: width 1.2s ease;
 }

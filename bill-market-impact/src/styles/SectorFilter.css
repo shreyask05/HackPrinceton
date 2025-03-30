@@ -1,17 +1,17 @@
 .sector-filter {
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .sector-filter label {
-    font-size: 16px;
-    margin-right: 0.5rem;
-  }
-  
-  .sector-filter select {
-    padding: 0.4rem 0.8rem;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sector-filter label {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.sector-filter select {
+  padding: 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
+}

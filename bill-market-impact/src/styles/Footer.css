@@ -1,4 +1,7 @@
-* {
-    font-family: "Times New Roman", Times, serif;
-  }
-  
+.footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: #f1f1f1;
+  color: #555;
+  font-size: 0.9rem;
+}
