@@ -1,12 +1,22 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Annotated
-from backend import models
-from backend.db import SessionLocal, engine
+# from backend.db import SessionLocal, engine
+from . import models
+from .db import SessionLocal, engine
 from sqlalchemy.orm import Session
 from httpx import AsyncClient
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Allow the frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 models.Bill.metadata.create_all(bind = engine)
     
 class Bill(BaseModel): 
@@ -35,7 +45,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 async def upload_bills(data: Bill):
     async with AsyncClient() as client:
            try:
-            res = await client.post('http://localhost:5432/create_bill', data = data)
+            res = await client.post('http://localhost:8000/create_bill', data = data)
             return res
            except ValueError as e:
                 print(e)
@@ -74,7 +84,7 @@ async def create_bill(bill: Bill, db: db_dependency):
     
 
 @app.get('/all_bills')
-async def get_bills(bills: Bill, db: db_dependency):
+async def get_bills(db: db_dependency):
     res = db.query(models.Bill).all()
     if not res:
         raise HTTPException(status=404, detail = 'Error lmao')
