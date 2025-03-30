@@ -1,2 +1,2 @@
 # HackPrinceton
-tbd
+The app uses and natural language processing algorithmic scoring to analyze legislative text, political variables, and external factors such as economic indicators. It predicts the likelihood of a bill's passage at various stages of the legislative process. The app also provides detailed insights into affected industries, partisan dynamics, and sponsor influence. Users can view a progress bar and probability scores for each bill, enabling them to track its status from introduction to enactment, and what impact they would have on specific industries in the stock market
